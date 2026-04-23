@@ -18,14 +18,11 @@
 #include "../utilities/cudaUtilities.cuh"
 #include "../memory.cuh"
 
-// Folder: <cwd>/LBM_bubble/vti
 inline std::filesystem::path default_out_dir()
 {
     std::ostringstream folder_name;
     folder_name << "Re"
                 << static_cast<int>(std::round(Re))
-                << "_We"
-                << static_cast<int>(std::round(We))
                 << "_vtifiles";
 
     return std::filesystem::current_path() / "JET_VTK" / folder_name.str();
@@ -94,21 +91,6 @@ inline std::string encode_scalar_array_binary(const real_t *data, std::size_t nv
     return base64_encode(buffer.data(), buffer.size());
 }
 
-inline std::string encode_sum_array_binary(const real_t *a, const real_t *b, std::size_t nvals)
-{
-    const std::uint64_t nbytes =
-        static_cast<std::uint64_t>(nvals) * static_cast<std::uint64_t>(sizeof(real_t));
-
-    std::vector<unsigned char> buffer(sizeof(std::uint64_t) + static_cast<std::size_t>(nbytes));
-    std::memcpy(buffer.data(), &nbytes, sizeof(std::uint64_t));
-
-    real_t *payload = reinterpret_cast<real_t *>(buffer.data() + sizeof(std::uint64_t));
-    for (std::size_t i = 0; i < nvals; ++i)
-        payload[i] = a[i] + b[i];
-
-    return base64_encode(buffer.data(), buffer.size());
-}
-
 inline std::string encode_vec3_array_binary(const real_t *ux,
                                             const real_t *uy,
                                             const real_t *uz,
@@ -136,12 +118,10 @@ inline std::string encode_vec3_array_binary(const real_t *ux,
 // -------------------- VTI writer --------------------
 
 inline void write_vti(const std::filesystem::path &filename,
-                      const real_t *rhor,
-                      const real_t *rhob,
+                      const real_t *rho,
                       const real_t *ux,
                       const real_t *uy,
-                      const real_t *uz,
-                      bool write_total_rho = true)
+                      const real_t *uz)
 {
     std::ofstream out(filename, std::ios::binary);
     if (!out)
@@ -149,9 +129,7 @@ inline void write_vti(const std::filesystem::path &filename,
 
     constexpr std::size_t npts = static_cast<std::size_t>(Ncells);
 
-    const std::string enc_rhor = encode_scalar_array_binary(rhor, npts);
-    const std::string enc_rhob = encode_scalar_array_binary(rhob, npts);
-    const std::string enc_rho = write_total_rho ? encode_sum_array_binary(rhor, rhob, npts) : std::string{};
+    const std::string enc_rho = encode_scalar_array_binary(rho, npts);
     const std::string enc_u = encode_vec3_array_binary(ux, uy, uz, npts);
 
     out << "<?xml version=\"1.0\"?>\n";
@@ -164,25 +142,12 @@ inline void write_vti(const std::filesystem::path &filename,
         << " 0 " << (NY - 1)
         << " 0 " << (NZ - 1) << "\">\n";
 
-    out << "      <PointData Scalars=\"rhor\" Vectors=\"u\">\n";
+    out << "      <PointData Scalars=\"rho\" Vectors=\"u\">\n";
 
     out << "        <DataArray type=\"" << vtk_real_type()
-        << "\" Name=\"rhor\" format=\"binary\">\n";
-    out << enc_rhor << "\n";
+        << "\" Name=\"rho\" format=\"binary\">\n";
+    out << enc_rho << "\n";
     out << "        </DataArray>\n";
-
-    out << "        <DataArray type=\"" << vtk_real_type()
-        << "\" Name=\"rhob\" format=\"binary\">\n";
-    out << enc_rhob << "\n";
-    out << "        </DataArray>\n";
-
-    if (write_total_rho)
-    {
-        out << "        <DataArray type=\"" << vtk_real_type()
-            << "\" Name=\"rho\" format=\"binary\">\n";
-        out << enc_rho << "\n";
-        out << "        </DataArray>\n";
-    }
 
     out << "        <DataArray type=\"" << vtk_real_type()
         << "\" Name=\"u\" NumberOfComponents=\"3\" format=\"binary\">\n";
@@ -212,7 +177,7 @@ inline void write_vti_step_device(int step, const LbmDevice &d, LbmHost &h)
     std::ostringstream name;
     name << "lbm_" << std::setw(8) << std::setfill('0') << step << ".vti";
 
-    write_vti(out_dir / name.str(), h.rhor, h.rhob, h.ux, h.uy, h.uz, true);
+    write_vti(out_dir / name.str(), h.rho, h.ux, h.uy, h.uz);
 }
 
 #endif

@@ -2,7 +2,6 @@
 #define LBM_CUH
 
 #include "constants.cuh"
-#include "stencil.cuh"
 #include "stencil_ct.cuh"
 #include "utilities/bounds.cuh"
 #include "utilities/indexing.cuh"
@@ -25,9 +24,9 @@ __device__ __forceinline__ real_t feq(const real_t rho,
 
     const real_t cu = ux * cx + uy * cy + uz * cz;
     const real_t usq = ux * ux + uy * uy + uz * uz;
-    const real_t A2eq = (cu / cs2) - (usq / (real_t(2.0) * cs2)) + (cu * cu) / (real_t(2.0) * cs4);
+    const real_t A2eq = (cu / cs2) - (usq * inv_2cs2) + (cu * cu) * inv_2cs4;
 
-    return wi * rho * (real_t(1.0) + A2eq);
+    return wi * rho * (A2eq) + wi * (rho - static_cast<real_t>(1.0));
 }
 
 template <label_t I>
@@ -47,47 +46,23 @@ __device__ __forceinline__ real_t fneqr(const real_t Pixx,
 
     constexpr real_t wi = D3Q27::w<I>();
 
-    const real_t a2neq = wi * (Pixx * Hxx + real_t(2.0) * Pixy * Hxy + Piyy * Hyy + real_t(2.0) * Piyz * Hyz + Pizz * Hzz + real_t(2.0) * Pixz * Hxz) / (real_t(2.0) * cs4);
+    const real_t a2neq = wi * (Pixx * Hxx + real_t(2.0) * Pixy * Hxy + Piyy * Hyy + real_t(2.0) * Piyz * Hyz + Pizz * Hzz + real_t(2.0) * Pixz * Hxz) * inv_2cs4;
 
     return a2neq;
 }
 
-template <label_t I>
-__device__ __forceinline__ void velocity_alt(const real_t gi,
-                                             real_t &jx,
-                                             real_t &jy,
-                                             real_t &jz) noexcept
-{
-    if constexpr (D3Q27::cx<I>() != 0)
-    {
-        jx += gi * static_cast<real_t>(D3Q27::cx<I>());
-    }
+//----------- Macroscopic fields calculation -----------
 
-    if constexpr (D3Q27::cy<I>() != 0)
-    {
-        jy += gi * static_cast<real_t>(D3Q27::cy<I>());
-    }
-
-    if constexpr (D3Q27::cz<I>() != 0)
-    {
-        jz += gi * static_cast<real_t>(D3Q27::cz<I>());
-    }
-}
-
-//--------------------
-
-__device__ __forceinline__ void Mfields_calculation(const pop_t __restrict__ *fr, real_t __restrict__ *rhor,
-                                                    const pop_t __restrict__ *fb, real_t __restrict__ *rhob,
+__device__ __forceinline__ void Mfields_calculation(const pop_t __restrict__ *f, real_t __restrict__ *rho,
                                                     real_t __restrict__ *ux, real_t __restrict__ *uy, real_t __restrict__ *uz,
                                                     real_t __restrict__ *Pixx, real_t __restrict__ *Pixy, real_t __restrict__ *Piyy,
                                                     real_t __restrict__ *Piyz, real_t __restrict__ *Pizz, real_t __restrict__ *Pixz,
                                                     const label_t x, const label_t y, const label_t z)
 {
 
-    const int id = idx(x, y, z);
+    const label_t id = idx(x, y, z);
 
-    real_t sumr = static_cast<real_t>(0.0);
-    real_t sumb = static_cast<real_t>(0.0);
+    real_t sum = static_cast<real_t>(0.0);
 
     real_t jx = static_cast<real_t>(0.0);
     real_t jy = static_cast<real_t>(0.0);
@@ -105,23 +80,17 @@ __device__ __forceinline__ void Mfields_calculation(const pop_t __restrict__ *fr
         {
             constexpr label_t i = decltype(I)::value;
 
-            const real_t fr_i = load_pop(fr[fidx(id, i)]);
-            const real_t fb_i = load_pop(fb[fidx(id, i)]);
+            const real_t fi = load_pop(f[fidx(id, i)]);
 
-            sumr += fr_i;
-            sumb += fb_i;
-
-            const real_t gi = fr_i + fb_i;
+            sum += fi;
 
             constexpr real_t cx = static_cast<real_t>(D3Q27::cx<I>());
             constexpr real_t cy = static_cast<real_t>(D3Q27::cy<I>());
             constexpr real_t cz = static_cast<real_t>(D3Q27::cz<I>());
 
-            jx += gi * cx;
-            jy += gi * cy;
-            jz += gi * cz;
-
-            // velocity_alt<i>(gi, jx, jy, jz);
+            jx += fi * cx;
+            jy += fi * cy;
+            jz += fi * cz;
 
             constexpr real_t Hxx = D3Q27::Hxx<i>();
             constexpr real_t Hxy = D3Q27::Hxy<i>();
@@ -130,33 +99,82 @@ __device__ __forceinline__ void Mfields_calculation(const pop_t __restrict__ *fr
             constexpr real_t Hzz = D3Q27::Hzz<i>();
             constexpr real_t Hxz = D3Q27::Hxz<i>();
 
-            Axx += gi * Hxx;
-            Axy += gi * Hxy;
-            Ayy += gi * Hyy;
-            Ayz += gi * Hyz;
-            Azz += gi * Hzz;
-            Axz += gi * Hxz;
+            Axx += fi * Hxx;
+            Axy += fi * Hxy;
+            Ayy += fi * Hyy;
+            Ayz += fi * Hyz;
+            Azz += fi * Hzz;
+            Axz += fi * Hxz;
         });
 
-    rhor[id] = sumr;
-    rhob[id] = sumb;
+    const real_t rho_t = sum + real_t(1.0);
+    rho[id] = rho_t;
 
-    const real_t rhogi = sumr + sumb;
-
-    const real_t vx = (jx) / rhogi;
-    const real_t vy = (jy) / rhogi;
-    const real_t vz = (jz) / rhogi;
+    const real_t vx = (jx) / rho_t;
+    const real_t vy = (jy) / rho_t;
+    const real_t vz = (jz) / rho_t;
 
     ux[id] = vx;
     uy[id] = vy;
     uz[id] = vz;
 
-    Pixx[id] = Axx - rhogi * vx * vx;
-    Pixy[id] = Axy - rhogi * vx * vy;
-    Piyy[id] = Ayy - rhogi * vy * vy;
-    Piyz[id] = Ayz - rhogi * vy * vz;
-    Pizz[id] = Azz - rhogi * vz * vz;
-    Pixz[id] = Axz - rhogi * vx * vz;
+    Pixx[id] = Axx - rho_t * vx * vx;
+    Pixy[id] = Axy - rho_t * vx * vy;
+    Piyy[id] = Ayy - rho_t * vy * vy;
+    Piyz[id] = Ayz - rho_t * vy * vz;
+    Pizz[id] = Azz - rho_t * vz * vz;
+    Pixz[id] = Axz - rho_t * vx * vz;
+}
+
+//----------- Streaming and collision -----------
+
+__device__ __forceinline__ void ColliStream_calculation(pop_t __restrict__ *f, const real_t __restrict__ *rho,
+                                                        const real_t __restrict__ *ux, const real_t __restrict__ *uy, const real_t __restrict__ *uz,
+                                                        const real_t __restrict__ *Pixx, const real_t __restrict__ *Pixy, const real_t __restrict__ *Piyy,
+                                                        const real_t __restrict__ *Piyz, const real_t __restrict__ *Pizz, const real_t __restrict__ *Pixz,
+                                                        const label_t x, const label_t y, const label_t z)
+{
+    const label_t id = idx(x, y, z);
+
+    const real_t rhol = rho[id];
+    const real_t vx = ux[id];
+    const real_t vy = uy[id];
+    const real_t vz = uz[id];
+    const real_t pixx = Pixx[id];
+    const real_t pixy = Pixy[id];
+    const real_t piyy = Piyy[id];
+    const real_t piyz = Piyz[id];
+    const real_t pizz = Pizz[id];
+    const real_t pixz = Pixz[id];
+
+    // const real_t omega = omega_sponge(y);
+    const real_t oms = (static_cast<real_t>(1.0) - omega);
+
+    constexpr_for<0, Q>(
+        [&] __device__(auto I)
+        {
+            constexpr label_t i = decltype(I)::value;
+
+            const real_t fieq = feq<i>(rhol, vx, vy, vz);
+            const real_t fineqr = fneqr<i>(pixx, pixy, piyy, piyz, pizz, pixz);
+
+            const real_t fi = fieq + oms * fineqr;
+
+            const int xn = static_cast<int>(x) + D3Q27::cx<i>();
+            const int zn = static_cast<int>(z) + D3Q27::cz<i>();
+
+            // // periodic boundary condition
+            // const int xn = wrapx(static_cast<int>(x) + D3Q27::cx<i>());
+            // const int zn = wrapz(static_cast<int>(z) + D3Q27::cz<i>());
+
+            const int yn = static_cast<int>(y) + D3Q27::cy<i>();
+
+            const label_t idn = idx(static_cast<label_t>(xn),
+                                    static_cast<label_t>(yn),
+                                    static_cast<label_t>(zn));
+
+            f[fidx(idn, i)] = save_pop(fi);
+        });
 }
 
 #endif

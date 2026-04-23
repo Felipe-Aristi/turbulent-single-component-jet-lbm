@@ -12,7 +12,7 @@ __device__ [[nodiscard]] constexpr inline bool interior(const label_t x, const l
             z == 0 || z == NZ - 1);
 }
 
-__device__ [[nodiscard]] constexpr inline bool inlet_oulet_interior(const label_t x, const label_t z) noexcept
+__device__ [[nodiscard]] constexpr inline bool inlet_outlet_interior(const label_t x, const label_t z) noexcept
 {
     return (x >= NX || z >= NZ ||
             x == 0 || x == NX - 1 ||

@@ -7,7 +7,6 @@
 #include "meanF/meanFieldsRT.cuh"
 
 #include "constants.cuh"
-#include "stencil.cuh"
 #include "memory.cuh"
 #include "launch.cuh"
 #include "io/save_data.cuh"
@@ -31,7 +30,6 @@ int main()
 
     launch_jetDensity(cfg, d);
     launch_Injet(cfg, d);
-    // launch_bubble(cfg, d);
 
     CUDA_CHECK(cudaDeviceSynchronize());
 

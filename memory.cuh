@@ -1,20 +1,16 @@
-// memory.cuh
 #ifndef MEMORY_CUH
 #define MEMORY_CUH
 
 #include <cuda_runtime.h>
-#include <cstring> // std::memset
 #include "constants.cuh"
 #include "utilities/cudaUtilities.cuh"
 
 // -------------------- Device fields --------------------
 struct LbmDevice
 {
-    pop_t *fir = nullptr;
-    pop_t *fib = nullptr;
+    pop_t *f = nullptr;
 
-    real_t *rhor = nullptr;
-    real_t *rhob = nullptr;
+    real_t *rho = nullptr;
 
     real_t *ux = nullptr;
     real_t *uy = nullptr;
@@ -31,8 +27,7 @@ struct LbmDevice
 // -------------------- Host buffers (for VTK output) --------------------
 struct LbmHost
 {
-    real_t *rhor = nullptr;
-    real_t *rhob = nullptr;
+    real_t *rho = nullptr;
 
     real_t *ux = nullptr;
     real_t *uy = nullptr;
@@ -45,8 +40,7 @@ inline LbmHost allocate_host_memory()
 {
     LbmHost h{};
 
-    CUDA_CHECK(cudaMallocHost(&h.rhor, bytesCell));
-    CUDA_CHECK(cudaMallocHost(&h.rhob, bytesCell));
+    CUDA_CHECK(cudaMallocHost(&h.rho, bytesCell));
 
     CUDA_CHECK(cudaMallocHost(&h.ux, bytesCell));
     CUDA_CHECK(cudaMallocHost(&h.uy, bytesCell));
@@ -59,11 +53,9 @@ inline LbmDevice allocate_device_memory()
 {
     LbmDevice d{};
 
-    CUDA_CHECK(cudaMalloc(&d.fir, bytesF));
-    CUDA_CHECK(cudaMalloc(&d.fib, bytesF));
+    CUDA_CHECK(cudaMalloc(&d.f, bytesF));
 
-    CUDA_CHECK(cudaMalloc(&d.rhor, bytesCell));
-    CUDA_CHECK(cudaMalloc(&d.rhob, bytesCell));
+    CUDA_CHECK(cudaMalloc(&d.rho, bytesCell));
 
     CUDA_CHECK(cudaMalloc(&d.ux, bytesCell));
     CUDA_CHECK(cudaMalloc(&d.uy, bytesCell));
@@ -76,11 +68,9 @@ inline LbmDevice allocate_device_memory()
     CUDA_CHECK(cudaMalloc(&d.Pizz, bytesCell));
     CUDA_CHECK(cudaMalloc(&d.Pixz, bytesCell));
 
-    CUDA_CHECK(cudaMemset(d.fir, 0, bytesF));
-    CUDA_CHECK(cudaMemset(d.fib, 0, bytesF));
+    CUDA_CHECK(cudaMemset(d.f, 0, bytesF));
 
-    CUDA_CHECK(cudaMemset(d.rhor, 0, bytesCell));
-    CUDA_CHECK(cudaMemset(d.rhob, 0, bytesCell));
+    CUDA_CHECK(cudaMemset(d.rho, 0, bytesCell));
 
     CUDA_CHECK(cudaMemset(d.ux, 0, bytesCell));
     CUDA_CHECK(cudaMemset(d.uy, 0, bytesCell));
@@ -100,8 +90,7 @@ inline LbmDevice allocate_device_memory()
 
 inline void free_host_memory(LbmHost &h)
 {
-    CUDA_CHECK(cudaFreeHost(h.rhor));
-    CUDA_CHECK(cudaFreeHost(h.rhob));
+    CUDA_CHECK(cudaFreeHost(h.rho));
 
     CUDA_CHECK(cudaFreeHost(h.ux));
     CUDA_CHECK(cudaFreeHost(h.uy));
@@ -112,8 +101,7 @@ inline void free_host_memory(LbmHost &h)
 
 inline void free_device_memory(LbmDevice &d)
 {
-    CUDA_CHECK(cudaFree(d.rhor));
-    CUDA_CHECK(cudaFree(d.rhob));
+    CUDA_CHECK(cudaFree(d.rho));
 
     CUDA_CHECK(cudaFree(d.ux));
     CUDA_CHECK(cudaFree(d.uy));
@@ -126,16 +114,14 @@ inline void free_device_memory(LbmDevice &d)
     CUDA_CHECK(cudaFree(d.Pizz));
     CUDA_CHECK(cudaFree(d.Pixz));
 
-    CUDA_CHECK(cudaFree(d.fir));
-    CUDA_CHECK(cudaFree(d.fib));
+    CUDA_CHECK(cudaFree(d.f));
 
     d = LbmDevice{};
 }
 
 inline void copy_out_D2H(LbmHost &h, const LbmDevice &d)
 {
-    CUDA_CHECK(cudaMemcpy(h.rhor, d.rhor, bytesCell, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(h.rhob, d.rhob, bytesCell, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h.rho, d.rho, bytesCell, cudaMemcpyDeviceToHost));
 
     CUDA_CHECK(cudaMemcpy(h.ux, d.ux, bytesCell, cudaMemcpyDeviceToHost));
     CUDA_CHECK(cudaMemcpy(h.uy, d.uy, bytesCell, cudaMemcpyDeviceToHost));

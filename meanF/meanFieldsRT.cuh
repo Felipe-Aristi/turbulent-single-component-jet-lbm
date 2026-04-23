@@ -38,8 +38,7 @@ inline std::string make_case_folder_name()
 {
     std::ostringstream oss;
     oss << "./JET_VTK/"
-        << "Re" << static_cast<int>(std::round(Re))
-        << "_We" << static_cast<int>(std::round(We));
+        << "Re" << static_cast<int>(std::round(Re));
     return oss.str();
 }
 

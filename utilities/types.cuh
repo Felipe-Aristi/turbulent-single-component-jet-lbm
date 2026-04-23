@@ -6,34 +6,23 @@
 
 using real_t = float;
 using label_t = uint32_t;
-
-// Mixed populations
 using pop_t = __half;
 
 inline constexpr real_t FP16S_UP = real_t(32768.0);         // 2^15
 inline constexpr real_t FP16S_DOWN = real_t(1.0 / 32768.0); // 2^-15
 
-__host__ __device__ [[nodiscard]] __forceinline__ pop_t save_pop(const real_t x) noexcept
+__host__ __device__ [[nodiscard]] __forceinline__
+    pop_t
+    save_pop(const real_t x) noexcept
 {
     return __float2half_rn(x * FP16S_UP);
 }
 
-__host__ __device__ [[nodiscard]] __forceinline__ real_t load_pop(const pop_t h) noexcept
+__host__ __device__ [[nodiscard]] __forceinline__
+    real_t
+    load_pop(const pop_t h) noexcept
 {
     return __half2float(h) * FP16S_DOWN;
 }
-
-// Shifted populations
-// template <label_t I>
-// __host__ __device__ __forceinline__ real_t shift_pop(const real_t f_raw) noexcept
-// {
-//     return f_raw - D3Q27::w<I>();
-// }
-
-// template <label_t I>
-// __host__ __device__ __forceinline__ real_t unshift_pop(const real_t f_shift) noexcept
-// {
-//     return f_shift + D3Q27::w<I>();
-// }
 
 #endif

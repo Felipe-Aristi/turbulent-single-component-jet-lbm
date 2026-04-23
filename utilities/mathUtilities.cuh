@@ -7,7 +7,6 @@
 #include <type_traits>
 #include <utility>
 #include "../constants.cuh"
-#include "../stencil.cuh"
 #include "types.cuh"
 
 // jet shape inlet
@@ -18,13 +17,6 @@ __device__ [[nodiscard]] constexpr label_t isJet(label_t x,
     const real_t dz = static_cast<real_t>(z) - jet_z0;
 
     return (dx * dx + dz * dz <= jet_radius * jet_radius) ? 1 : 0;
-}
-
-// Phase- Field
-__device__ __forceinline__ real_t psi(const real_t rho_self,
-                                      const real_t rho_other) noexcept
-{
-    return real_t(rho_self - rho_other) / real_t(rho_self + rho_other);
 }
 
 // Extrapolation
