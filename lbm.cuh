@@ -24,7 +24,7 @@ __device__ __forceinline__ real_t feq(const real_t rho,
 
     const real_t cu = ux * cx + uy * cy + uz * cz;
     const real_t usq = ux * ux + uy * uy + uz * uz;
-    const real_t A2eq = (cu / cs2) - (usq * inv_2cs2) + (cu * cu) * inv_2cs4;
+    const real_t A2eq = (cu * inv_cs2) - (usq * inv_2cs2) + (cu * cu) * inv_2cs4;
 
     return wi * rho * (A2eq) + wi * (rho - static_cast<real_t>(1.0));
 }
@@ -108,11 +108,13 @@ __device__ __forceinline__ void Mfields_calculation(const pop_t __restrict__ *f,
         });
 
     const real_t rho_t = sum + real_t(1.0);
+    const real_t rho_inv = static_cast<real_t>(1.0) / rho_t;
+
     rho[id] = rho_t;
 
-    const real_t vx = (jx) / rho_t;
-    const real_t vy = (jy) / rho_t;
-    const real_t vz = (jz) / rho_t;
+    const real_t vx = (jx)*rho_inv;
+    const real_t vy = (jy)*rho_inv;
+    const real_t vz = (jz)*rho_inv;
 
     ux[id] = vx;
     uy[id] = vy;
@@ -148,7 +150,7 @@ __device__ __forceinline__ void ColliStream_calculation(pop_t __restrict__ *f, c
     const real_t pixz = Pixz[id];
 
     // const real_t omega = omega_sponge(y);
-    const real_t oms = (static_cast<real_t>(1.0) - omega);
+    constexpr const real_t oms = (static_cast<real_t>(1.0) - omega);
 
     constexpr_for<0, Q>(
         [&] __device__(auto I)
@@ -160,12 +162,12 @@ __device__ __forceinline__ void ColliStream_calculation(pop_t __restrict__ *f, c
 
             const real_t fi = fieq + oms * fineqr;
 
-            const int xn = static_cast<int>(x) + D3Q27::cx<i>();
-            const int zn = static_cast<int>(z) + D3Q27::cz<i>();
+            // const int xn = static_cast<int>(x) + D3Q27::cx<i>();
+            // const int zn = static_cast<int>(z) + D3Q27::cz<i>();
 
             // // periodic boundary condition
-            // const int xn = wrapx(static_cast<int>(x) + D3Q27::cx<i>());
-            // const int zn = wrapz(static_cast<int>(z) + D3Q27::cz<i>());
+            const int xn = wrapx(static_cast<int>(x) + D3Q27::cx<i>());
+            const int zn = wrapz(static_cast<int>(z) + D3Q27::cz<i>());
 
             const int yn = static_cast<int>(y) + D3Q27::cy<i>();
 
