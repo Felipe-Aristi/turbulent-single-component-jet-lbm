@@ -2,11 +2,15 @@
 #define CONSTANTS_CUH
 
 #include <array>
+#include <cstddef>
 #include "utilities/types.cuh"
 
 // Steps
 inline constexpr int NSTEP = 500000;
 inline constexpr int NOUTPUT = 2000;
+inline constexpr int NSTATS_SAMPLE = 20;
+inline constexpr int NSLICE_OUTPUT = 2000;
+inline constexpr int NPROFILE_OUTPUT = 2000;
 
 // Grid
 inline constexpr label_t NX = static_cast<label_t>(128);
@@ -15,6 +19,8 @@ inline constexpr label_t NY = static_cast<label_t>(400);
 inline constexpr label_t sponge_cells = static_cast<label_t>(10);
 
 inline constexpr label_t Ncells = NX * NY * NZ;
+inline constexpr label_t NR_BINS = (NX < NZ ? NX : NZ) / static_cast<label_t>(2);
+inline constexpr std::size_t NradialProfileCells = static_cast<std::size_t>(NY) * static_cast<std::size_t>(NR_BINS);
 
 // VELOCITY SET D2Q27 definition
 inline constexpr label_t Q = 27;

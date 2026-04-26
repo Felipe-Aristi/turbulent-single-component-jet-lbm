@@ -68,6 +68,21 @@ inline void launch_update_uy_average(const CudaConfig &cfg,
     CUDA_CHECK(cudaGetLastError());
 }
 
+inline void launch_accumulate_radial_moments(const CudaConfig &cfg,
+                                             const LbmDevice &d,
+                                             const MeanFieldsDevice &mf,
+                                             cudaStream_t stream = 0)
+{
+    accumulate_radial_moments<<<cfg.grid, cfg.block, 0, stream>>>(
+        d.ux, d.uy, d.uz,
+        mf.sum_uy, mf.sum_uy2,
+        mf.sum_ur, mf.sum_ur2,
+        mf.sum_uruy,
+        mf.count);
+
+    CUDA_CHECK(cudaGetLastError());
+}
+
 inline void launch_collistream(const CudaConfig &cfg, const LbmDevice &d, cudaStream_t stream = 0)
 {
     ColliStream<<<cfg.grid, cfg.block, 0, stream>>>(
