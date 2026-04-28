@@ -149,8 +149,8 @@ __device__ __forceinline__ void ColliStream_calculation(pop_t __restrict__ *f, c
     const real_t pizz = Pizz[id];
     const real_t pixz = Pixz[id];
 
-    // const real_t omega = omega_sponge(y);
-    constexpr const real_t oms = (static_cast<real_t>(1.0) - omega);
+    const real_t omega_eff = omega_sponge(y);
+    const real_t oms = static_cast<real_t>(1.0) - omega_eff;
 
     constexpr_for<0, Q>(
         [&] __device__(auto I)

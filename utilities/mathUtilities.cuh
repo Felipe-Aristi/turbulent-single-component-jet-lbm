@@ -39,7 +39,7 @@ __device__ __forceinline__ real_t convectiveB(const real_t phiBold,
 
 // Sponge layer
 inline constexpr real_t sponge_gain = static_cast<real_t>(3.0);
-inline constexpr real_t sponge_K = static_cast<real_t>(20.0);
+inline constexpr real_t sponge_K = static_cast<real_t>(100.0);
 
 inline constexpr label_t sponge_y_end = NY - static_cast<label_t>(2);
 inline constexpr label_t sponge_y_start = sponge_y_end - sponge_cells + static_cast<label_t>(1);

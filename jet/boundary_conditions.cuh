@@ -48,7 +48,7 @@ __device__ __forceinline__ void inlet_calculation(pop_t __restrict__ *f,
     const real_t pizz = Pizz[idF];
     const real_t pixz = Pixz[idF];
 
-    const real_t oms = static_cast<real_t>(1.0) - omega;
+    const real_t oms = static_cast<real_t>(1.0) - omega_sponge(yF);
 
     constexpr_for<0, Q>(
         [&] __device__(auto I)
@@ -107,7 +107,7 @@ __device__ __forceinline__ void neumann_calculation(pop_t __restrict__ *f,
     const real_t pizz = Pizz[idF];
     const real_t pixz = Pixz[idF];
 
-    const real_t oms = static_cast<real_t>(1.0) - omega;
+    const real_t oms = static_cast<real_t>(1.0) - omega_sponge(yF);
 
     constexpr_for<0, Q>(
         [&] __device__(auto I)
