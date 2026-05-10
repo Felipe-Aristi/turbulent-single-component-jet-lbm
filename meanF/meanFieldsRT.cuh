@@ -277,8 +277,8 @@ inline void write_radial_profile_metadata(const MeanFieldsRuntime &mf)
     out << "NZ " << NZ << "\n";
     out << "NR_BINS " << NR_BINS << "\n";
     out << "NradialProfileCells " << NradialProfileCells << "\n";
+    out << "NOUTPUT " << NOUTPUT << "\n";
     out << "NSTATS_SAMPLE " << NSTATS_SAMPLE << "\n";
-    out << "NPROFILE_OUTPUT " << NPROFILE_OUTPUT << "\n";
     out << "start_step " << mf.state.step_uy_avg_start << "\n";
     out << "radial_sample_count " << mf.state.radial_sample_count << "\n";
     out << "layout y_major_index_equals_y_times_NR_BINS_plus_rbin\n";

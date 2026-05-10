@@ -83,12 +83,12 @@ int main()
             // write_vti_step_device(step, d, h);
         }
 
-        if (step % NPROFILE_OUTPUT == 0)
+        if (step % NOUTPUT == 0)
         {
             write_radial_profile_outputs(mf);
         }
 
-        if (step % NSLICE_OUTPUT == 0)
+        if (step % NOUTPUT == 0)
         {
             write_midplane_velocity_profile_vti_step_device(step, d, mf.vti_dir);
         }

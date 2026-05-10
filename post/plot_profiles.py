@@ -278,7 +278,7 @@ def plot_mean_profiles(mean_dir, output_dir, diameter, u_jet, slices, fit_start,
                 label=label,
             )
 
-    ax4.plot(HUSSEIN_X, HUSSEIN_U, ls="none", marker="x", ms=4, color=red, label="Hussein et al. (1994)")
+    ax4.plot(HUSSEIN_X, HUSSEIN_U, ls="none", marker="x", ms=4, color=black, label="Hussein et al. (1994)")
 
     ax3.legend(fontsize=10)
     ax4.legend(fontsize=10)

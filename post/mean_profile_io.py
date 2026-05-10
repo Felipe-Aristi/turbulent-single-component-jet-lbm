@@ -26,7 +26,7 @@ def read_constants(project_root=PROJECT_ROOT):
 
     text = constants_path.read_text()
     constants = {}
-    for name in ("NOUTPUT", "NSTATS_SAMPLE", "NPROFILE_OUTPUT", "NX", "NY", "NZ"):
+    for name in ("NOUTPUT", "NSTATS_SAMPLE", "NX", "NY", "NZ"):
         value = parse_scalar_constant(text, name)
         if value is not None:
             constants[name] = int(value)
@@ -60,7 +60,7 @@ def read_metadata(mean_dir):
         key, value = parts
         metadata[key] = value
 
-    for key in ("NX", "NY", "NZ", "NR_BINS", "NradialProfileCells", "NSTATS_SAMPLE", "NPROFILE_OUTPUT", "start_step", "radial_sample_count"):
+    for key in ("NX", "NY", "NZ", "NR_BINS", "NradialProfileCells", "NOUTPUT", "NSTATS_SAMPLE", "start_step", "radial_sample_count"):
         if key in metadata:
             metadata[key] = int(metadata[key])
 
