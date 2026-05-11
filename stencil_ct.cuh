@@ -77,6 +77,10 @@ namespace D3Q27
         }
     }
 
+    // ===================================================
+    // Second order Hermite polynomials
+    // ===================================================
+
     template <label_t I>
     __host__ __device__ constexpr real_t Hxx() noexcept
     {
@@ -112,6 +116,53 @@ namespace D3Q27
     {
         return real_t(cx<I>() * cz<I>());
     }
+
+    // ===================================================
+    // Third order Hermite polynomials
+    // ===================================================
+    template <label_t I>
+    __host__ __device__ constexpr real_t Hxxy() noexcept
+    {
+        return real_t(cx<I>() * cx<I>() * cy<I>()) - cs2 * real_t(cy<I>());
+    }
+
+    template <label_t I>
+    __host__ __device__ constexpr real_t Hxxz() noexcept
+    {
+        return real_t(cx<I>() * cx<I>() * cz<I>()) - cs2 * real_t(cz<I>());
+    }
+
+    template <label_t I>
+    __host__ __device__ constexpr real_t Hxyy() noexcept
+    {
+        return real_t(cx<I>() * cy<I>() * cy<I>()) - cs2 * real_t(cx<I>());
+    }
+
+    template <label_t I>
+    __host__ __device__ constexpr real_t Hxzz() noexcept
+    {
+        return real_t(cx<I>() * cz<I>() * cz<I>()) - cs2 * real_t(cx<I>());
+    }
+
+    template <label_t I>
+    __host__ __device__ constexpr real_t Hyyz() noexcept
+    {
+        return real_t(cy<I>() * cy<I>() * cz<I>()) - cs2 * real_t(cz<I>());
+    }
+
+    template <label_t I>
+    __host__ __device__ constexpr real_t Hyzz() noexcept
+    {
+        return real_t(cy<I>() * cz<I>() * cz<I>()) - cs2 * real_t(cy<I>());
+    }
+
+    template <label_t I>
+    __host__ __device__ constexpr real_t Hxyz() noexcept
+    {
+        return real_t(cx<I>() * cy<I>() * cz<I>());
+    }
+
+    // ===============================================================================
 
     template <label_t I>
     __host__ __device__ constexpr real_t invcnorm() noexcept

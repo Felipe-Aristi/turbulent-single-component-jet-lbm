@@ -8,7 +8,7 @@ nvcc -O3 -std=c++20 --extended-lambda -rdc=true \
   kernels.cu \
   -o main
 
-./main
+./main "${1:-0}"
 
 
 # // Para Gustavito mi amigoooo 
@@ -17,4 +17,4 @@ nvcc -O3 -std=c++20 --extended-lambda -rdc=true \
 #   main.cu kernels.cu \
 #   -o main
 
-# ./main
+# ./main "${1:-0}"

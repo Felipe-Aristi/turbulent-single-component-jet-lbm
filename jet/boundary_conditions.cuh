@@ -14,6 +14,9 @@
 //----------------- inlet boundary condition -------------------------
 __device__ __forceinline__ void inlet_calculation(pop_t __restrict__ *f,
                                                   real_t __restrict__ *rho,
+                                                  const real_t __restrict__ *ux,
+                                                  const real_t __restrict__ *uy,
+                                                  const real_t __restrict__ *uz,
                                                   const real_t __restrict__ *Pixx,
                                                   const real_t __restrict__ *Pixy,
                                                   const real_t __restrict__ *Piyy,
@@ -47,6 +50,9 @@ __device__ __forceinline__ void inlet_calculation(pop_t __restrict__ *f,
     const real_t piyz = Piyz[idF];
     const real_t pizz = Pizz[idF];
     const real_t pixz = Pixz[idF];
+    const real_t uxf = ux[idF];
+    const real_t uyf = uy[idF];
+    const real_t uzf = uz[idF];
 
     const real_t oms = static_cast<real_t>(1.0) - omega_sponge(yF);
 
@@ -61,7 +67,7 @@ __device__ __forceinline__ void inlet_calculation(pop_t __restrict__ *f,
                 const label_t fluid_node = static_cast<label_t>(fluid_nodei);
 
                 const real_t fieq = feq<i>(rho0, uxb, uyb, uzb);
-                const real_t fineqr = fneqr<i>(pixx, pixy, piyy, piyz, pizz, pixz);
+                const real_t fineqr = fneqr<i>(pixx, pixy, piyy, piyz, pizz, pixz, uxf, uyf, uzf);
 
                 const real_t fi = fieq + oms * fineqr;
 
@@ -106,6 +112,9 @@ __device__ __forceinline__ void neumann_calculation(pop_t __restrict__ *f,
     const real_t piyz = Piyz[idF];
     const real_t pizz = Pizz[idF];
     const real_t pixz = Pixz[idF];
+    const real_t uxf = ux[idF];
+    const real_t uyf = uy[idF];
+    const real_t uzf = uz[idF];
 
     const real_t oms = static_cast<real_t>(1.0) - omega_sponge(yF);
 
@@ -120,7 +129,7 @@ __device__ __forceinline__ void neumann_calculation(pop_t __restrict__ *f,
                 const label_t fluid_node = static_cast<label_t>(fluid_nodei);
 
                 const real_t fieq = feq<i>(rhoB, uxB, uyB, uzB);
-                const real_t fineqr = fneqr<i>(pixx, pixy, piyy, piyz, pizz, pixz);
+                const real_t fineqr = fneqr<i>(pixx, pixy, piyy, piyz, pizz, pixz, uxf, uyf, uzf);
 
                 const real_t fi = fieq + oms * fineqr;
 

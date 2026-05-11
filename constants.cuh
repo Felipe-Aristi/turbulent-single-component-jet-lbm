@@ -36,10 +36,14 @@ inline constexpr real_t jet_velocity = static_cast<real_t>(0.05);
 
 // Some useful constans
 inline constexpr real_t cs2 = static_cast<real_t>(1.0 / 3.0);
-inline constexpr real_t inv_cs2 = static_cast<real_t>(1) / cs2;
 inline constexpr real_t cs4 = cs2 * cs2;
+inline constexpr real_t cs6 = cs4 * cs2;
+
+inline constexpr real_t inv_cs2 = static_cast<real_t>(1) / cs2;
 inline constexpr real_t inv_2cs2 = static_cast<real_t>(1) / (static_cast<real_t>(2) * cs2);
 inline constexpr real_t inv_2cs4 = static_cast<real_t>(1) / (static_cast<real_t>(2) * cs4);
+inline constexpr real_t inv_6cs6 = static_cast<real_t>(1.0) / (static_cast<real_t>(6.0) * cs6);
+inline constexpr real_t inv_2cs6 = static_cast<real_t>(1.0) / (static_cast<real_t>(2.0) * cs6);
 
 // Fluidparameters
 inline constexpr real_t rho0 = static_cast<real_t>(1);

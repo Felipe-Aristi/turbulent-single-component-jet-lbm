@@ -49,7 +49,7 @@ struct MeanFieldsState
     unsigned int step_uy_avg_start = 0;
     unsigned int stable_energy_samples = 0;
     profile_count_t radial_sample_count = 0;
-    static constexpr real_t tke_tolerance = static_cast<real_t>(1e-4);
+    static constexpr real_t tke_tolerance = static_cast<real_t>(1e-1);
     static constexpr unsigned int stable_energy_samples_required = 5;
 };
 

@@ -1,4 +1,7 @@
+#include <cerrno>
+#include <cstdlib>
 #include <iostream>
+#include <limits>
 
 #include "utilities/cudaUtilities.cuh"
 #include "utilities/cudaConfig.cuh"
@@ -11,10 +14,43 @@
 #include "launch.cuh"
 #include "io/save_data.cuh"
 
-constexpr int deviceID = 0;
-
-int main()
+int parse_device_id(const int argc, char **argv)
 {
+    if (argc <= 1)
+    {
+        return 0;
+    }
+
+    char *end = nullptr;
+    errno = 0;
+    const long value = std::strtol(argv[1], &end, 10);
+
+    if (errno != 0 || end == argv[1] || *end != '\0' ||
+        value < 0 || value > std::numeric_limits<int>::max())
+    {
+        std::cerr << "Invalid GPU id: " << argv[1] << "\n"
+                  << "Usage: " << argv[0] << " [gpu_id]\n";
+        std::exit(EXIT_FAILURE);
+    }
+
+    return static_cast<int>(value);
+}
+
+int main(const int argc, char **argv)
+{
+    const int deviceID = parse_device_id(argc, argv);
+
+    int deviceCount = 0;
+    CUDA_CHECK(cudaGetDeviceCount(&deviceCount));
+    if (deviceID >= deviceCount)
+    {
+        std::cerr << "Invalid GPU id " << deviceID
+                  << ". This system has " << deviceCount << " CUDA device(s).\n";
+        return EXIT_FAILURE;
+    }
+
+    CUDA_CHECK(cudaSetDevice(deviceID));
+
     MeanFieldsRuntime mf{};
 
     if (!initialize_mean_fields_runtime(deviceID, mf))

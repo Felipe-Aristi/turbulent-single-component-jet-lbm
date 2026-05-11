@@ -77,6 +77,7 @@ __global__ void ColliStream(pop_t __restrict__ *f, const real_t __restrict__ *rh
 //----------------- Boundary conditions -------------------------
 
 __global__ void inlet(pop_t __restrict__ *f, real_t __restrict__ *rho,
+                      const real_t __restrict__ *ux, const real_t __restrict__ *uy, const real_t __restrict__ *uz,
                       const real_t __restrict__ *Pixx, const real_t __restrict__ *Pixy, const real_t __restrict__ *Piyy,
                       const real_t __restrict__ *Piyz, const real_t __restrict__ *Pizz, const real_t __restrict__ *Pixz)
 {
@@ -88,7 +89,7 @@ __global__ void inlet(pop_t __restrict__ *f, real_t __restrict__ *rho,
         return;
     }
 
-    inlet_calculation(f, rho, Pixx, Pixy, Piyy, Piyz, Pizz, Pixz, x, z);
+    inlet_calculation(f, rho, ux, uy, uz, Pixx, Pixy, Piyy, Piyz, Pizz, Pixz, x, z);
 }
 
 __global__ void neumann(pop_t __restrict__ *f, real_t __restrict__ *rho,
