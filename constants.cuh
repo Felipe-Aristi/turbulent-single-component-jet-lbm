@@ -34,6 +34,9 @@ inline constexpr real_t jet_x0 = static_cast<real_t>(NX - 1) / static_cast<real_
 inline constexpr real_t jet_z0 = static_cast<real_t>(NZ - 1) / static_cast<real_t>(2);
 inline constexpr real_t jet_velocity = static_cast<real_t>(0.05);
 
+// Statistics
+inline constexpr real_t stats_start_tstar = static_cast<real_t>(7000.0);
+
 // Some useful constans
 inline constexpr real_t cs2 = static_cast<real_t>(1.0 / 3.0);
 inline constexpr real_t cs4 = cs2 * cs2;

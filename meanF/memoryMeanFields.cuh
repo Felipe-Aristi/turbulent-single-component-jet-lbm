@@ -50,7 +50,6 @@ struct MeanFieldsState
     unsigned int stable_energy_samples = 0;
     profile_count_t radial_sample_count = 0;
     static constexpr real_t tke_tolerance = static_cast<real_t>(1e-1);
-    static constexpr unsigned int stable_energy_samples_required = 5;
 };
 
 inline constexpr std::size_t profileStatBytes = NradialProfileCells * sizeof(profile_stat_t);

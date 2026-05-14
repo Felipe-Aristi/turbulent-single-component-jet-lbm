@@ -174,6 +174,12 @@ inline void free_mean_fields_runtime(MeanFieldsRuntime &mf)
     mf = MeanFieldsRuntime{};
 }
 
+inline real_t step_to_tstar(const int step)
+{
+    return static_cast<real_t>(step) * jet_velocity /
+           (static_cast<real_t>(2) * jet_radius);
+}
+
 inline void update_tke_state(MeanFieldsRuntime &mf, const int step)
 {
     if (mf.state.first_tke_sample)
@@ -202,22 +208,26 @@ inline void update_tke_state(MeanFieldsRuntime &mf, const int step)
         {
             mf.state.stable_energy_samples = 0;
         }
+    }
 
-        if (!mf.state.start_uy_average &&
-            mf.state.stable_energy_samples >= MeanFieldsState::stable_energy_samples_required)
-        {
-            mf.state.start_uy_average = true;
-            mf.state.step_uy_avg_start = static_cast<unsigned int>(step);
+    const real_t tstar = step_to_tstar(step);
 
-            std::cout << "Starting radial profile averages at step "
-                      << mf.state.step_uy_avg_start
-                      << " | relative_energy_delta = " << mf.host.abs_delta
-                      << "\n";
-        }
+    if (!mf.state.start_uy_average && tstar >= stats_start_tstar)
+    {
+        mf.state.start_uy_average = true;
+        mf.state.step_uy_avg_start = static_cast<unsigned int>(step);
+
+        std::cout << "Starting radial profile averages at step "
+                  << mf.state.step_uy_avg_start
+                  << " | t_star = " << tstar
+                  << " | configured_start_t_star = " << stats_start_tstar
+                  << " | relative_energy_delta = " << mf.host.abs_delta
+                  << "\n";
     }
 
     std::cout << std::scientific
               << "step " << step
+              << " | t_star = " << tstar
               << " | tke_total = " << mf.host.tke_total
               << " | tke_avg = " << mf.host.tke_avg
               << " | relative_energy_delta = " << mf.host.abs_delta
@@ -279,7 +289,9 @@ inline void write_radial_profile_metadata(const MeanFieldsRuntime &mf)
     out << "NradialProfileCells " << NradialProfileCells << "\n";
     out << "NOUTPUT " << NOUTPUT << "\n";
     out << "NSTATS_SAMPLE " << NSTATS_SAMPLE << "\n";
+    out << "stats_start_tstar " << stats_start_tstar << "\n";
     out << "start_step " << mf.state.step_uy_avg_start << "\n";
+    out << "start_tstar " << step_to_tstar(static_cast<int>(mf.state.step_uy_avg_start)) << "\n";
     out << "radial_sample_count " << mf.state.radial_sample_count << "\n";
     out << "layout y_major_index_equals_y_times_NR_BINS_plus_rbin\n";
     out << "stat_dtype float64\n";

@@ -64,6 +64,10 @@ def read_metadata(mean_dir):
         if key in metadata:
             metadata[key] = int(metadata[key])
 
+    for key in ("stats_start_tstar", "start_tstar"):
+        if key in metadata:
+            metadata[key] = float(metadata[key])
+
     return metadata
 
 
